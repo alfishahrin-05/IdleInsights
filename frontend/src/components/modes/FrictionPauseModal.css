@@ -1,0 +1,196 @@
+.friction-pause-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.friction-pause-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  max-width: 500px;
+  width: 90vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Breathing Circle Animation */
+.breathing-container {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+  height: 200px;
+  display: flex;
+  align-items: center;
+}
+
+.breathing-circle {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #60a5fa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+}
+
+.breathing-circle.breathing {
+  animation: breathing 4s ease-in-out infinite;
+}
+
+.breathing-circle.complete {
+  animation: none;
+  background: linear-gradient(135deg, #10b981, #34d399);
+}
+
+@keyframes breathing {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 12px 48px rgba(59, 130, 246, 0.5);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+  }
+}
+
+.circle-inner {
+  width: 140px;
+  height: 140px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.countdown-number {
+  font-size: 3.5rem;
+  font-weight: bold;
+  color: #3b82f6;
+  line-height: 1;
+}
+
+/* Text */
+.pause-title {
+  font-size: 1.75rem;
+  margin: 0;
+  color: var(--color-text);
+}
+
+.pause-subtitle {
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.pause-timer {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  margin: 0;
+  font-style: italic;
+}
+
+/* Buttons */
+.pause-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.pause-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.btn.btn-primary.pause-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.btn.btn-primary.pause-button:hover {
+  background: #2563eb;
+  transform: translateY(-2px);
+}
+
+.btn.btn-secondary.pause-button {
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn.btn-secondary.pause-button:hover {
+  background: var(--color-border);
+  transform: translateY(-2px);
+}
+
+/* Info */
+.pause-info {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin: 0;
+  padding: 1rem;
+  background: var(--color-bg-secondary);
+  border-radius: 8px;
+  line-height: 1.4;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .friction-pause-modal {
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .circle-inner {
+    background: rgba(59, 130, 246, 0.1);
+  }
+}
