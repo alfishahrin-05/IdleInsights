@@ -5,7 +5,7 @@ const IntendedTask = require('../models/IntendedTask');
 exports.getActiveMode = async (req, res) => {
   try {
     const activeMode = await Mode.findOne({
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     }).populate('taskId');
 
@@ -23,13 +23,13 @@ exports.activateMode = async (req, res) => {
 
     // Deactivate any existing active modes
     await Mode.updateMany(
-      { userId: req.userId, status: 'active' },
+      { userId: req.user._id, status: 'active' },
       { status: 'paused', completedAt: new Date() }
     );
 
     // Validate taskId if provided (for Task Deconstructor)
     if (taskId) {
-      const task = await IntendedTask.findOne({ _id: taskId, userId: req.userId });
+      const task = await IntendedTask.findOne({ _id: taskId, userId: req.user._id });
       if (!task) {
         return res.status(404).json({ message: 'Task not found' });
       }
@@ -37,7 +37,7 @@ exports.activateMode = async (req, res) => {
 
     // Create new mode instance
     const mode = new Mode({
-      userId: req.userId,
+      userId: req.user._id,
       activeMode,
       taskId,
       settings: settings || {},
@@ -72,7 +72,7 @@ exports.updateModeSettings = async (req, res) => {
     const { settings } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId
+      userId: req.user._id
     });
 
     if (!mode) {
@@ -96,7 +96,7 @@ exports.addSubTask = async (req, res) => {
     const { text, estimatedMinutes } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
@@ -120,7 +120,7 @@ exports.updateSubTask = async (req, res) => {
     const { subTaskId, text, estimatedMinutes } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
@@ -152,7 +152,7 @@ exports.deleteSubTask = async (req, res) => {
     const { subTaskId } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
@@ -177,7 +177,7 @@ exports.completeSubTask = async (req, res) => {
     const { subTaskId } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
@@ -200,7 +200,7 @@ exports.saveAsTemplate = async (req, res) => {
   try {
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId
+      userId: req.user._id
     });
 
     if (!mode || !mode.taskId) {
@@ -209,7 +209,7 @@ exports.saveAsTemplate = async (req, res) => {
 
     const task = await IntendedTask.findOne({
       _id: mode.taskId,
-      userId: req.userId
+      userId: req.user._id
     });
 
     if (!task) {
@@ -236,7 +236,7 @@ exports.deactivateMode = async (req, res) => {
   try {
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
@@ -261,7 +261,7 @@ exports.startDistractionSession = async (req, res) => {
     const { category, sessionId } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
@@ -283,7 +283,7 @@ exports.endDistractionSession = async (req, res) => {
     const { sessionId, totalSeconds } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
@@ -305,7 +305,7 @@ exports.recordFrictionPause = async (req, res) => {
     const { sessionId, durationSeconds } = req.body;
     const mode = await Mode.findOne({
       _id: req.params.id,
-      userId: req.userId,
+      userId: req.user._id,
       status: 'active'
     });
 
