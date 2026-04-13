@@ -59,7 +59,7 @@ const modeSchema = new mongoose.Schema({
   // Digital Friction specific fields
   distractionSessions: [{
     sessionId: mongoose.Schema.Types.ObjectId,
-    category: String, // 'social', 'video', 'gaming', 'browsing'
+    category: String, // social, video, gaming, browsing
     startedAt: Date,
     endedAt: Date,
     pauseCount: { type: Number, default: 0 },
@@ -85,7 +85,7 @@ const modeSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Virtual for completion progress
+// Virtual for completion progress (returns progress for completed sub tasks)
 modeSchema.virtual('progress').get(function() {
   if (!this.subTasks || this.subTasks.length === 0) return 0;
   const completed = this.subTasks.filter(st => st.completed).length;
