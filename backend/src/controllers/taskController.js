@@ -9,7 +9,7 @@ const getTasks = async (req, res) => {
         // The requirement said "active tasks" for dropdown, likely.
 
         // If query ?status=active provided
-        const filter = { userId: req.userId };
+        const filter = { userId: req.user._id };
         if (req.query.status) {
             filter.status = req.query.status;
         }
@@ -38,7 +38,7 @@ const createTask = async (req, res) => {
         }
 
         const task = await IntendedTask.create({
-            userId: req.userId,
+            userId: req.user._id,
             title,
             difficulty
         });
@@ -61,7 +61,7 @@ const updateTask = async (req, res) => {
         }
 
         // Check for user
-        if (task.userId.toString() !== req.userId) {
+        if (task.userId.toString() !== req.user._id) {
             return res.status(401).json({ message: 'User not authorized' });
         }
 
@@ -89,7 +89,7 @@ const deleteTask = async (req, res) => {
         }
 
         // Check for user
-        if (task.userId.toString() !== req.userId) {
+        if (task.userId.toString() !== req.user._id) {
             return res.status(401).json({ message: 'User not authorized' });
         }
 
