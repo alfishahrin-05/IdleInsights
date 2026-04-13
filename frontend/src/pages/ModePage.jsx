@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import CustomSelect from '../components/shared/CustomSelect';
 
 const MODES = [
   { id: 'TASK_DECONSTRUCTOR', name: 'Task Deconstructor', emoji: '🧩', description: 'Break large tasks into manageable sub-tasks' },
@@ -52,16 +53,15 @@ const ModePage = () => {
     // Modes with their own setup pages — navigate there to customize first
     const setupRoutes = {
       'DIGITAL_FRICTION': '/modes/digital-friction',
+      'NEXT_ACTION_CLARIFIER': '/modes/next-action-clarifier',
+      'SINGLE_CONTEXT_LOCK': '/modes/single-context-lock',
+      'DONE_OVER_PERFECT': '/modes/done-over-perfect',
+      'NOVELTY_INJECTION': '/modes/novelty-injection',
+      'TASK_DECONSTRUCTOR': '/modes/task-deconstructor'
     };
 
     if (setupRoutes[selectedMode]) {
       navigate(setupRoutes[selectedMode]);
-      return;
-    }
-
-    // Task Deconstructor requires task selection, then activates + navigates
-    if (selectedMode === 'TASK_DECONSTRUCTOR' && !selectedTask) {
-      alert('Please select a task for Task Deconstructor mode');
       return;
     }
 
@@ -74,16 +74,7 @@ const ModePage = () => {
 
       const response = await API.post('/modes/activate', payload);
       setActiveMode(response.data);
-      
-      const modeRoutes = {
-        'TASK_DECONSTRUCTOR': `/modes/task-deconstructor/${response.data._id}`,
-      };
-
-      if (modeRoutes[selectedMode]) {
-        navigate(modeRoutes[selectedMode]);
-      } else {
-        alert(`${MODES.find(m => m.id === selectedMode).name} activated! (Implementation coming soon)`);
-      }
+      alert(`${MODES.find(m => m.id === selectedMode).name} activated!`);
     } catch (error) {
       console.error('Error activating mode:', error);
       alert('Failed to activate mode');
@@ -136,65 +127,37 @@ const ModePage = () => {
         <div className="card">
           <h2>Activate Mode (Testing)</h2>
           
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-              Select Mode
-            </label>
-            <select 
-              value={selectedMode} 
-              onChange={(e) => setSelectedMode(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                fontSize: '1rem',
-                borderRadius: '8px',
-                border: '2px solid var(--color-border)',
-                backgroundColor: 'var(--color-bg-secondary)',
-                color: 'var(--color-text)'
-              }}
-            >
-              <option value="">-- Choose a Mode --</option>
-              {MODES.map(mode => (
-                <option key={mode.id} value={mode.id}>
-                  {mode.emoji} {mode.name} - {mode.description}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            value={selectedMode}
+            onChange={setSelectedMode}
+            label="Select Mode"
+            placeholder="-- Choose a Mode --"
+            options={MODES.map(mode => ({
+              value: mode.id,
+              label: `${mode.emoji} ${mode.name} - ${mode.description}`
+            }))}
+          />
 
           {/* Task Selection (only for Task Deconstructor) */}
           {selectedMode === 'TASK_DECONSTRUCTOR' && (
-            <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-                Select Task to Deconstruct
-              </label>
-              <select 
-                value={selectedTask} 
-                onChange={(e) => setSelectedTask(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem',
-                  fontSize: '1rem',
-                  borderRadius: '8px',
-                  border: '2px solid var(--color-border)',
-                  backgroundColor: 'var(--color-bg-secondary)',
-                  color: 'var(--color-text)'
-                }}
-              >
-                <option value="">-- Choose a Task --</option>
-                {tasks.map(task => (
-                  <option key={task._id} value={task._id}>
-                    {task.title} (Difficulty: {task.difficulty}/5)
-                  </option>
-                ))}
-              </select>
+            <>
+              <CustomSelect
+                value={selectedTask}
+                onChange={setSelectedTask}
+                label="Select Task to Deconstruct"
+                placeholder="-- Choose a Task --"
+                options={tasks.map(task => ({
+                  value: task._id,
+                  label: `${task.title} (Difficulty: ${task.difficulty}/5)`
+                }))}
+              />
               
               {tasks.length === 0 && (
                 <p style={{ fontSize: '0.9rem', color: 'var(--color-warning)', marginTop: '0.5rem' }}>
                   No active tasks found. <Link to="/tasks">Create a task first</Link>
                 </p>
               )}
-            </div>
+            </>
           )}
 
           <button 

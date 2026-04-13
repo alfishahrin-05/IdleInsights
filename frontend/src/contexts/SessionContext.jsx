@@ -3,8 +3,8 @@ import { flushSync } from 'react-dom';
 import API from '../services/api';
 
 // Configuration
-const CHECK_IN_INTERVAL_MINUTES = 20; // Set to 1 for testing, 15 for production for notification
-const CHECK_IN_TIMEOUT_MINUTES = 5; // Time to respond before marking as missed (0.17 = 10 seconds for quick testing)
+const CHECK_IN_INTERVAL_MINUTES = 1; // Set to 1 for testing, 15 for production for notification
+const CHECK_IN_TIMEOUT_MINUTES = 0.5; // Time to respond before marking as missed (0.17 = 10 seconds for quick testing)
 
 const SessionContext = createContext();
 

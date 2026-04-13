@@ -22,7 +22,7 @@ export const useFocusDetection = (onFocusRegained) => {
                     const awayDuration = Math.floor((new Date() - new Date(focusLostAt)) / 1000 / 60);
                     
                     // Only show prompt if away for at least 5 minutes
-                    if (awayDuration >= 5 && onFocusRegained) {
+                    if (awayDuration >= 0.5 && onFocusRegained) {
                         onFocusRegained(awayDuration);
                     }
                 }
