@@ -12,6 +12,10 @@ const intendedTaskSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    description: {
+        type: String,
+        default: ''
+    },
     difficulty: {
         type: Number,
         required: true,
@@ -33,7 +37,30 @@ const intendedTaskSchema = new mongoose.Schema({
             type: Number,
             min: 0
         }
-    }]
+    }],
+    // Next-Action Clarifier Mode fields
+    clarificationDetails: {
+        what: {
+            type: String,
+            default: ''
+        },
+        where: {
+            type: String,
+            default: ''
+        },
+        howToKnowDone: {
+            type: String,
+            default: ''
+        },
+        firstAction: {
+            type: String,
+            default: ''
+        }
+    },
+    isVague: {
+        type: Boolean,
+        default: true
+    }
 }, {
     timestamps: true
 });
