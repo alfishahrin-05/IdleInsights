@@ -103,7 +103,7 @@ const HomePage = () => {
             onMouseEnter={(e) => e.target.style.opacity = '0.9'}
             onMouseLeave={(e) => e.target.style.opacity = '1'}
           >
-            Sign Up Free
+            Sign Up
           </button>
         </div>
       </nav>
@@ -125,15 +125,7 @@ const HomePage = () => {
         }}>
           Conquer Procrastination<br />Reclaim Your Focus
         </h1>
-        <p style={{
-          fontSize: '1.25rem',
-          color: '#cbd5e1',
-          marginBottom: '2rem',
-          maxWidth: '600px',
-          margin: '0 auto 2rem'
-        }}>
-          Science-backed countermeasure modes designed to overcome any procrastination pattern. Work smarter, not harder.
-        </p>
+
         <button 
           onClick={() => navigate('/register')}
           style={{
@@ -153,7 +145,7 @@ const HomePage = () => {
           onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
           onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
         >
-          Start Free <ArrowRight size={20} />
+          Get Started <ArrowRight size={20} />
         </button>
       </section>
 

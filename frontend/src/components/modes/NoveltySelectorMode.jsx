@@ -51,6 +51,17 @@ const NoveltySelectorMode = () => {
     }
   }, [modeId]);
 
+  // Auto-update level when XP changes
+  useEffect(() => {
+    const calculatedLevel = Math.floor(xpPoints / 1000) + 1;
+    if (calculatedLevel !== level) {
+      setLevel(calculatedLevel);
+      if (calculatedLevel > level) {
+        unlockNewTitle(calculatedLevel);
+      }
+    }
+  }, [xpPoints]);
+
   useEffect(() => {
     let interval;
     if (isRunning) {
@@ -68,18 +79,11 @@ const NoveltySelectorMode = () => {
             ...prev,
             [today]: (prev[today] || 0) + 100
           }));
-          
-          // Calculate level (every 1000 XP = 1 level)
-          const newLevel = Math.floor(newXp / 1000) + 1;
-          if (newLevel > level) {
-            setLevel(newLevel);
-            unlockNewTitle(newLevel);
-          }
         }
       }, 60000); // Update every minute
     }
     return () => clearInterval(interval);
-  }, [isRunning, sessionMinutes, xpPoints, level]);
+  }, [isRunning, sessionMinutes, xpPoints]);
 
   const fetchTasks = async () => {
     try {
@@ -210,7 +214,7 @@ const NoveltySelectorMode = () => {
     return 'Focus Novice';
   };
 
-  const xpToNextLevel = (level * 1000) - xpPoints;
+  const xpToNextLevel = 1000 - (xpPoints % 1000);
 
   // Setup view
   if (!modeId) {
