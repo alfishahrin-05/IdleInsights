@@ -1,0 +1,1191 @@
+{
+	"info": {
+		"_postman_id": "idle-insights-api",
+		"name": "IdleInsights API",
+		"description": "Complete API collection for IdleInsights — a MERN-stack procrastination analysis web app.\n\n## Setup\n1. Register or Login to get a JWT token\n2. The token is auto-saved to the `token` collection variable\n3. All protected routes use `{{token}}` in the Authorization header\n\n## Variables\n- `baseUrl`: http://localhost:5000/api\n- `token`: JWT token (auto-set on login/register)\n- `taskId`: ID of a created task\n- `logId`: ID of a created log\n- `sessionId`: ID of an active session\n- `modeId`: ID of an active mode\n- `subTaskId`: ID of a sub-task",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000/api"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "taskId",
+			"value": ""
+		},
+		{
+			"key": "logId",
+			"value": ""
+		},
+		{
+			"key": "sessionId",
+			"value": ""
+		},
+		{
+			"key": "modeId",
+			"value": ""
+		},
+		{
+			"key": "subTaskId",
+			"value": ""
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "1. Auth",
+			"description": "Public endpoints for registration and login. Token is auto-saved to collection variable on success.",
+			"item": [
+				{
+					"name": "Register",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('token', res.token);",
+									"    console.log('Token saved from register');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						},
+						"description": "Register a new user. Returns JWT token (valid 30 days).\n\n**Response:** `{ _id, email, token }`"
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('token', res.token);",
+									"    console.log('Token saved from login');",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Authenticate existing user. Returns JWT token.\n\n**Response:** `{ _id, email, token }`"
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Tasks",
+			"description": "CRUD operations for Intended Tasks. All routes require JWT.\n\nTasks represent what the user *intended* to work on. Referenced by logs and sessions.",
+			"item": [
+				{
+					"name": "Get All Tasks",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"]
+						},
+						"description": "Get all tasks for authenticated user. Sorted newest first.\n\n**Query params:** `?status=active` (optional: active, completed, archived)"
+					}
+				},
+				{
+					"name": "Get Active Tasks",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/tasks?status=active",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"],
+							"query": [
+								{
+									"key": "status",
+									"value": "active"
+								}
+							]
+						},
+						"description": "Get only active tasks (used for dropdowns in log/session creation)."
+					}
+				},
+				{
+					"name": "Create Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('taskId', res._id);",
+									"    console.log('taskId saved:', res._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Study for Web Programming Exam\",\n    \"difficulty\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"]
+						},
+						"description": "Create a new intended task.\n\n**Fields:**\n- `title` (required): Task name\n- `difficulty` (required): 1-5 scale\n\nTask ID is auto-saved to `{{taskId}}`."
+					}
+				},
+				{
+					"name": "Update Task",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Study for Web Programming Final\",\n    \"difficulty\": 5,\n    \"status\": \"active\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{taskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{taskId}}"]
+						},
+						"description": "Update task fields. All fields optional.\n\n**Fields:** `title`, `difficulty`, `status` (active/completed/archived)"
+					}
+				},
+				{
+					"name": "Delete Task",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/tasks/{{taskId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "{{taskId}}"]
+						},
+						"description": "Delete a task. Returns `{ id }`."
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Logs",
+			"description": "CRUD for distraction log entries. Every create/update/delete triggers PVI recomputation.\n\nLogs are the core data source for the analytics engine.",
+			"item": [
+				{
+					"name": "Get All Logs",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/logs",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs"]
+						},
+						"description": "Get all logs for user. Populated with task title/difficulty.\n\n**Query params:** `?from=2026-01-01&to=2026-02-18&category=social` (all optional)"
+					}
+				},
+				{
+					"name": "Get Logs (Filtered)",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/logs?category=social&from=2026-01-01",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs"],
+							"query": [
+								{
+									"key": "category",
+									"value": "social"
+								},
+								{
+									"key": "from",
+									"value": "2026-01-01"
+								}
+							]
+						},
+						"description": "Get logs filtered by category and/or date range."
+					}
+				},
+				{
+					"name": "Create Log (+ PVI Recompute)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('logId', res.logEntry._id);",
+									"    console.log('logId saved:', res.logEntry._id);",
+									"    console.log('Updated PVI:', res.analytics.pvi);",
+									"    console.log('Root Cause:', res.analytics.rootCauseLabel);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intendedTaskId\": \"{{taskId}}\",\n    \"durationMinutes\": 30,\n    \"activityCategory\": \"social\",\n    \"activityDetail\": \"Scrolling Instagram reels\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logs",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs"]
+						},
+						"description": "Create a distraction log entry. **Triggers PVI recomputation.**\n\n**Fields:**\n- `intendedTaskId` (required): Task being avoided\n- `durationMinutes` (required): min 1\n- `activityCategory` (required): social, video, gaming, browsing, messaging, other\n- `activityDetail` (optional): Free-text detail\n\n**Response:** `{ logEntry, analytics: { pvi, rootCauseLabel } }`"
+					}
+				},
+				{
+					"name": "Update Log (+ PVI Recompute)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"durationMinutes\": 45,\n    \"activityCategory\": \"video\",\n    \"activityDetail\": \"Watching YouTube\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logs/{{logId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs", "{{logId}}"]
+						},
+						"description": "Update a log entry. **Triggers PVI recomputation.**\n\n**Response:** `{ logEntry, analytics: { pvi, rootCauseLabel } }`"
+					}
+				},
+				{
+					"name": "Delete Log (+ PVI Recompute)",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/logs/{{logId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs", "{{logId}}"]
+						},
+						"description": "Delete a log entry. **Triggers PVI recomputation.**\n\n**Response:** `{ id, analytics: { pvi, rootCauseLabel } }`"
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Analytics",
+			"description": "Read-only analytics endpoints. PVI and chart data are computed from stored logs.",
+			"item": [
+				{
+					"name": "Get Analytics Summary",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "summary"]
+						},
+						"description": "Get PVI score, root cause label, and aggregate stats.\n\n**Response:**\n```json\n{\n  \"pvi\": 42,\n  \"rootCauseLabel\": \"DOOMSCROLL_LOOP\",\n  \"stats\": {\n    \"totalLogs\": 15,\n    \"totalMinutes\": 480,\n    \"avgSessionMinutes\": 32,\n    \"topActivity\": \"social\"\n  }\n}\n```"
+					}
+				},
+				{
+					"name": "Get Analytics Charts",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/charts",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "charts"]
+						},
+						"description": "Get chart-ready data for dashboard visualizations.\n\n**Response:**\n```json\n{\n  \"activityBreakdown\": { \"social\": 5, \"video\": 3, \"browsing\": 2 },\n  \"timeOfDay\": { \"Morning\": 4, \"Afternoon\": 8, \"Evening\": 2, \"Night\": 1 },\n  \"trend\": [{ \"date\": \"2026-02-10\", \"minutes\": 45 }, ...]\n}\n```"
+					}
+				}
+			]
+		},
+		{
+			"name": "5. Sessions",
+			"description": "Live focus tracking sessions. Full lifecycle: start → events → end.\n\nOn end, distraction events are converted to LogEntries and PVI is recomputed.",
+			"item": [
+				{
+					"name": "Start Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('sessionId', res._id);",
+									"    console.log('sessionId saved:', res._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intendedTaskId\": \"{{taskId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/start",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "start"]
+						},
+						"description": "Start a new focus session. Rejects if user already has an active/paused session.\n\nSession ID is auto-saved to `{{sessionId}}`."
+					}
+				},
+				{
+					"name": "Get Active Session",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "active"]
+						},
+						"description": "Get the user's current active or paused session. Returns `null` if none."
+					}
+				},
+				{
+					"name": "Get Session History",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/history?limit=20&skip=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "history"],
+							"query": [
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "skip",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Get paginated completed/abandoned sessions.\n\n**Response:** `{ sessions[], total, hasMore }`"
+					}
+				},
+				{
+					"name": "Get Session By ID",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}"]
+						},
+						"description": "Get a specific session by ID with full event timeline."
+					}
+				},
+				{
+					"name": "Pause Session",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/pause",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "pause"]
+						},
+						"description": "Pause an active session. Adds a `pause` event to the timeline."
+					}
+				},
+				{
+					"name": "Resume Session",
+					"request": {
+						"method": "PATCH",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/resume",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "resume"]
+						},
+						"description": "Resume a paused session. Adds a `resume` event to the timeline."
+					}
+				},
+				{
+					"name": "Log Distraction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activityCategory\": \"social\",\n    \"durationMinutes\": 15,\n    \"activityDetail\": \"Checking Twitter notifications\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/distraction",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "distraction"]
+						},
+						"description": "Log a distraction during an active session. Pushes a `distraction` event.\n\n**Fields:**\n- `activityCategory` (required): social, video, gaming, browsing, messaging, other\n- `durationMinutes` (required)\n- `activityDetail` (optional)"
+					}
+				},
+				{
+					"name": "Log Focus Lost",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/focus-lost",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "focus-lost"]
+						},
+						"description": "Log when user leaves the app tab (Page Visibility API trigger). Pushes a `focus_lost` event."
+					}
+				},
+				{
+					"name": "Log Focus Regained",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"awayDurationMinutes\": 12,\n    \"userClassification\": \"distraction\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/focus-regained",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "focus-regained"]
+						},
+						"description": "Log when user returns to the app. Pushes a `focus_regained` event.\n\n**Fields:**\n- `awayDurationMinutes`: How long user was away\n- `userClassification`: `distraction` / `working_elsewhere` / `ignored`"
+					}
+				},
+				{
+					"name": "Log Check-In (Success)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"success\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/check-in",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "check-in"]
+						},
+						"description": "Log a successful check-in response.\n\n**Fields:**\n- `status`: `success` or `missed`"
+					}
+				},
+				{
+					"name": "Log Check-In (Missed)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"missed\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/check-in",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "check-in"]
+						},
+						"description": "Log a missed check-in (2-min timeout expired)."
+					}
+				},
+				{
+					"name": "End Session (+ PVI Recompute)",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/end",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "end"]
+						},
+						"description": "End the session. **Complex flow:**\n1. Computes session summary (totalMinutes, focusedMinutes, efficiencyScore, etc.)\n2. Converts all distraction events → LogEntry documents\n3. Triggers PVI recomputation\n4. Returns session with summary"
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Modes",
+			"description": "Countermeasure mode management. Supports 6 mode types.\n\nOnly one mode can be active at a time — activating a new mode deactivates the previous one.",
+			"item": [
+				{
+					"name": "Get Active Mode",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/modes/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "active"]
+						},
+						"description": "Get the currently active countermeasure mode. Returns `null` if none active."
+					}
+				},
+				{
+					"name": "Activate Mode — Task Deconstructor",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('modeId', res._id);",
+									"    console.log('modeId saved:', res._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activeMode\": \"TASK_DECONSTRUCTOR\",\n    \"taskId\": \"{{taskId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/activate",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "activate"]
+						},
+						"description": "Activate Task Deconstructor mode. Deactivates any existing active mode.\n\nIf the task has a saved `subTaskTemplate`, it will be loaded automatically.\n\nMode ID is auto-saved to `{{modeId}}`."
+					}
+				},
+				{
+					"name": "Activate Mode — Digital Friction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('modeId', res._id);",
+									"    console.log('modeId saved:', res._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activeMode\": \"DIGITAL_FRICTION\",\n    \"settings\": {\n        \"monitoredCategories\": [\"social\", \"video\", \"browsing\"],\n        \"frictionDelayMinutes\": 5,\n        \"breathingExerciseEnabled\": true\n    }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/activate",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "activate"]
+						},
+						"description": "Activate Digital Friction mode with custom settings.\n\nNo `taskId` required — this mode is task-independent."
+					}
+				},
+				{
+					"name": "Update Mode Settings",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"settings\": {\n        \"monitoredCategories\": [\"social\", \"video\"],\n        \"frictionDelayMinutes\": 3\n    }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}"]
+						},
+						"description": "Update settings for an active mode. Settings are merged (spread) with existing."
+					}
+				},
+				{
+					"name": "Add Sub-Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const res = pm.response.json();",
+									"    const lastSt = res.subTasks[res.subTasks.length - 1];",
+									"    pm.collectionVariables.set('subTaskId', lastSt._id);",
+									"    console.log('subTaskId saved:', lastSt._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"text\": \"Read chapter 5 notes\",\n    \"estimatedMinutes\": 20\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/subtasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "subtasks"]
+						},
+						"description": "Add a sub-task to Task Deconstructor mode.\n\nSub-task ID auto-saved to `{{subTaskId}}`."
+					}
+				},
+				{
+					"name": "Update Sub-Task",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subTaskId\": \"{{subTaskId}}\",\n    \"text\": \"Read chapter 5 & 6 notes\",\n    \"estimatedMinutes\": 30\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/subtasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "subtasks"]
+						},
+						"description": "Edit an existing sub-task's text or estimated time."
+					}
+				},
+				{
+					"name": "Delete Sub-Task",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subTaskId\": \"{{subTaskId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/subtasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "subtasks"]
+						},
+						"description": "Remove a sub-task from the mode."
+					}
+				},
+				{
+					"name": "Complete Sub-Task",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subTaskId\": \"{{subTaskId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/complete-subtask",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "complete-subtask"]
+						},
+						"description": "Mark a sub-task as completed. Auto-advances `currentSubTaskIndex` to next incomplete. If all sub-tasks complete → mode status becomes `completed`."
+					}
+				},
+				{
+					"name": "Save Sub-Tasks as Template",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/save-template",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "save-template"]
+						},
+						"description": "Save current sub-task breakdown back to the IntendedTask's `subTaskTemplate`. Next time this task is used in Task Deconstructor, the template auto-loads."
+					}
+				},
+				{
+					"name": "Digital Friction — Start Distraction Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"category\": \"social\",\n    \"sessionId\": \"{{sessionId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/distraction-session",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "distraction-session"]
+						},
+						"description": "Start tracking a distraction browsing session within Digital Friction mode.\n\n**Fields:**\n- `category`: Distraction type\n- `sessionId`: Reference to the browsing session being tracked"
+					}
+				},
+				{
+					"name": "Digital Friction — Record Friction Pause",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sessionId\": \"{{sessionId}}\",\n    \"durationSeconds\": 10\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/friction-pause",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "friction-pause"]
+						},
+						"description": "Record a breathing exercise pause during distraction tracking.\n\nEscalation: 10s → 15s → 20s (capped). Formula: `min(20, 10 + pauseCount × 5)`"
+					}
+				},
+				{
+					"name": "Digital Friction — End Distraction Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sessionId\": \"{{sessionId}}\",\n    \"totalSeconds\": 300\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}/distraction-session/end",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}", "distraction-session", "end"]
+						},
+						"description": "End distraction session tracking. Calculates time rescued based on friction pauses.\n\n**Fields:**\n- `sessionId`: The distraction session to end\n- `totalSeconds`: Total time spent on the distraction"
+					}
+				},
+				{
+					"name": "Deactivate Mode",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}"]
+						},
+						"description": "Deactivate the current mode. Sets status to `paused`."
+					}
+				}
+			]
+		},
+		{
+			"name": "🧪 Full Demo Flow",
+			"description": "Run these requests in order to simulate a complete user journey:\n\n1. Register → 2. Create Task → 3. Create Logs → 4. Check Analytics → 5. Start Session → 6. Log events → 7. End Session → 8. Activate Mode → 9. Use Mode → 10. Deactivate",
+			"item": [
+				{
+					"name": "1. Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const res = pm.response.json();",
+									"    pm.collectionVariables.set('token', res.token);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"demo@idleinsights.com\",\n    \"password\": \"demo1234\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "2. Create Task",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('taskId', pm.response.json()._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"Complete CSE-4540 Project\",\n    \"difficulty\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks"]
+						}
+					}
+				},
+				{
+					"name": "3. Log Distraction #1 (Social)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    pm.collectionVariables.set('logId', pm.response.json().logEntry._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intendedTaskId\": \"{{taskId}}\",\n    \"durationMinutes\": 25,\n    \"activityCategory\": \"social\",\n    \"activityDetail\": \"Scrolling Instagram\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logs",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs"]
+						}
+					}
+				},
+				{
+					"name": "4. Log Distraction #2 (Video)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intendedTaskId\": \"{{taskId}}\",\n    \"durationMinutes\": 40,\n    \"activityCategory\": \"video\",\n    \"activityDetail\": \"YouTube rabbit hole\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logs",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs"]
+						}
+					}
+				},
+				{
+					"name": "5. Log Distraction #3 (Browsing)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intendedTaskId\": \"{{taskId}}\",\n    \"durationMinutes\": 20,\n    \"activityCategory\": \"browsing\",\n    \"activityDetail\": \"Reading Reddit threads\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/logs",
+							"host": ["{{baseUrl}}"],
+							"path": ["logs"]
+						}
+					}
+				},
+				{
+					"name": "6. Check Analytics Summary",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "summary"]
+						}
+					}
+				},
+				{
+					"name": "7. Check Analytics Charts",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/charts",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "charts"]
+						}
+					}
+				},
+				{
+					"name": "8. Start Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    pm.collectionVariables.set('sessionId', pm.response.json()._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"intendedTaskId\": \"{{taskId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/start",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "start"]
+						}
+					}
+				},
+				{
+					"name": "9. Session — Log Distraction",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activityCategory\": \"social\",\n    \"durationMinutes\": 10,\n    \"activityDetail\": \"Quick Twitter check\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/distraction",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "distraction"]
+						}
+					}
+				},
+				{
+					"name": "10. Session — Check-In Success",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"success\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/check-in",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "check-in"]
+						}
+					}
+				},
+				{
+					"name": "11. End Session",
+					"request": {
+						"method": "POST",
+						"url": {
+							"raw": "{{baseUrl}}/sessions/{{sessionId}}/end",
+							"host": ["{{baseUrl}}"],
+							"path": ["sessions", "{{sessionId}}", "end"]
+						}
+					}
+				},
+				{
+					"name": "12. Activate Digital Friction Mode",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    pm.collectionVariables.set('modeId', pm.response.json()._id);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"activeMode\": \"DIGITAL_FRICTION\",\n    \"settings\": {\n        \"monitoredCategories\": [\"social\", \"video\", \"browsing\"],\n        \"frictionDelayMinutes\": 5,\n        \"breathingExerciseEnabled\": true\n    }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/modes/activate",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "activate"]
+						}
+					}
+				},
+				{
+					"name": "13. Check Final Analytics",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/analytics/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "summary"]
+						}
+					}
+				},
+				{
+					"name": "14. Deactivate Mode",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/modes/{{modeId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["modes", "{{modeId}}"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
