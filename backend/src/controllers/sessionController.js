@@ -17,7 +17,7 @@ const startSession = async (req, res) => {
         // Verify task exists and belongs to user
         const task = await IntendedTask.findOne({
             _id: intendedTaskId,
-            userId: req.userId
+            userId: req.user._id
         });
 
         if (!task) {
@@ -26,7 +26,7 @@ const startSession = async (req, res) => {
 
         // Check if user already has an active session
         const existingSession = await Session.findOne({
-            userId: req.userId,
+            userId: req.user._id,
             status: { $in: ['active', 'paused'] }
         });
 
@@ -39,7 +39,7 @@ const startSession = async (req, res) => {
 
         // Create new session
         const session = await Session.create({
-            userId: req.userId,
+            userId: req.user._id,
             intendedTaskId,
             startTime: new Date(),
             status: 'active'
@@ -63,7 +63,7 @@ const pauseSession = async (req, res) => {
     try {
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         });
 
         if (!session) {
@@ -97,7 +97,7 @@ const resumeSession = async (req, res) => {
     try {
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         });
 
         if (!session) {
@@ -137,7 +137,7 @@ const logDistraction = async (req, res) => {
 
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         });
 
         if (!session) {
@@ -169,7 +169,7 @@ const logFocusLost = async (req, res) => {
     try {
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         });
 
         if (!session) {
@@ -200,7 +200,7 @@ const logFocusRegained = async (req, res) => {
 
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         });
 
         if (!session) {
@@ -237,7 +237,7 @@ const logCheckIn = async (req, res) => {
 
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         });
 
         if (!session) {
@@ -266,7 +266,7 @@ const endSession = async (req, res) => {
     try {
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         }).populate('intendedTaskId', 'title difficulty');
 
         if (!session) {
@@ -291,7 +291,7 @@ const endSession = async (req, res) => {
         for (const distraction of distractionEvents) {
             try {
                 await LogEntry.create({
-                    userId: req.userId,
+                    userId: req.user._id,
                     intendedTaskId: session.intendedTaskId,
                     activityCategory: distraction.activityCategory || 'other',
                     durationMinutes: distraction.durationMinutes || 0,
@@ -306,7 +306,7 @@ const endSession = async (req, res) => {
 
         // Trigger analytics recomputation
         try {
-            await analyticsService.recomputeUserAnalytics(req.userId);
+            await analyticsService.recomputeUserAnalytics(req.user._id);
         } catch (analyticsError) {
             console.error('Analytics recomputation error:', analyticsError);
             // Don't fail the request if analytics fails
@@ -326,7 +326,7 @@ const endSession = async (req, res) => {
 const getActiveSession = async (req, res) => {
     try {
         const session = await Session.findOne({
-            userId: req.userId,
+            userId: req.user._id,
             status: { $in: ['active', 'paused'] }
         }).populate('intendedTaskId', 'title difficulty');
 
@@ -347,7 +347,7 @@ const getSessionHistory = async (req, res) => {
         const skip = parseInt(req.query.skip) || 0;
 
         const sessions = await Session.find({
-            userId: req.userId,
+            userId: req.user._id,
             status: { $in: ['completed', 'abandoned'] }
         })
         .populate('intendedTaskId', 'title difficulty')
@@ -356,7 +356,7 @@ const getSessionHistory = async (req, res) => {
         .skip(skip);
 
         const total = await Session.countDocuments({
-            userId: req.userId,
+            userId: req.user._id,
             status: { $in: ['completed', 'abandoned'] }
         });
 
@@ -379,7 +379,7 @@ const getSessionById = async (req, res) => {
     try {
         const session = await Session.findOne({
             _id: req.params.id,
-            userId: req.userId
+            userId: req.user._id
         }).populate('intendedTaskId', 'title difficulty');
 
         if (!session) {
