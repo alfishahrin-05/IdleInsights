@@ -9,7 +9,7 @@ const analyticsService = require('../services/analyticsService');
 const getLogs = async (req, res) => {
     try {
         const { from, to, category } = req.query;
-        const query = { userId: req.userId };
+        const query = { userId: req.user._id };
 
         if (from || to) {
             query.createdAt = {};
@@ -47,13 +47,13 @@ const createLog = async (req, res) => {
         if (!task) {
             return res.status(404).json({ message: 'Intended Task not found' });
         }
-        if (task.userId.toString() !== req.userId) {
+        if (task.userId.toString() !== req.user._id) {
             return res.status(401).json({ message: 'Unauthorized access to task' });
         }
 
         // Create Log
         const logEntry = await LogEntry.create({
-            userId: req.userId,
+            userId: req.user._id,
             intendedTaskId,
             durationMinutes,
             activityCategory,
@@ -61,7 +61,7 @@ const createLog = async (req, res) => {
         });
 
         // TRIGGER ANALYTICS
-        const analyticsResult = await analyticsService.recomputeUserAnalytics(req.userId);
+        const analyticsResult = await analyticsService.recomputeUserAnalytics(req.user._id);
 
         // Return response with new analytics
         res.status(200).json({
@@ -85,7 +85,7 @@ const updateLog = async (req, res) => {
             return res.status(404).json({ message: 'Log not found' });
         }
 
-        if (log.userId.toString() !== req.userId) {
+        if (log.userId.toString() !== req.user._id) {
             return res.status(401).json({ message: 'User not authorized' });
         }
 
@@ -96,8 +96,8 @@ const updateLog = async (req, res) => {
         );
 
         // TRIGGER ANALYTICS
-        await analyticsService.recomputeUserAnalytics(req.userId);
-        const user = await User.findById(req.userId); // fetch latest
+        await analyticsService.recomputeUserAnalytics(req.user._id);
+        const user = await User.findById(req.user._id); // fetch latest
 
         res.status(200).json({
             logEntry: updatedLog,
@@ -122,15 +122,15 @@ const deleteLog = async (req, res) => {
             return res.status(404).json({ message: 'Log not found' });
         }
 
-        if (log.userId.toString() !== req.userId) {
+        if (log.userId.toString() !== req.user._id) {
             return res.status(401).json({ message: 'User not authorized' });
         }
 
         await log.deleteOne();
 
         // TRIGGER ANALYTICS
-        await analyticsService.recomputeUserAnalytics(req.userId);
-        const user = await User.findById(req.userId);
+        await analyticsService.recomputeUserAnalytics(req.user._id);
+        const user = await User.findById(req.user._id);
 
         res.status(200).json({
             id: req.params.id,
