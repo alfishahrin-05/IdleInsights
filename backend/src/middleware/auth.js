@@ -15,21 +15,19 @@ const protect = async (req, res, next) => {
             // Verify token
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-            // Get user from the token (excluding password)
-            // We append it to request object
-            req.userId = decoded.id;
-
-            // Optional: Fetch full user if needed, but usually ID is enough for refs
-            // req.user = await User.findById(decoded.id).select('-passwordHash');
+            // Get user from the token 
+            const user = await User.findById(decoded.id);
+            if (!user) {
+                return res.status(401).json({ message: 'User not found' });
+            }
+            req.user = user;
 
             next();
         } catch (error) {
             console.error(error);
             res.status(401).json({ message: 'Not authorized' });
         }
-    }
-
-    if (!token) {
+    } else {
         res.status(401).json({ message: 'Not authorized, no token' });
     }
 };
