@@ -1,15 +1,14 @@
 const LogEntry = require('../models/LogEntry');
 const User = require('../models/User');
 
-// @desc    Get analytics summary (PVI, Root Cause, Stats)
-// @route   GET /api/analytics/summary
-// @access  Private
+//Get analytics summary (PVI, Root Cause, Stats)
+//GET /api/analytics/summary
 const getAnalyticsSummary = async (req, res) => {
     try {
-        const user = await User.findById(req.userId).select('pvi rootCauseLabel');
+        const user = await User.findById(req.user._id).select('pvi rootCauseLabel');
 
         // Calculate simple stats
-        const logs = await LogEntry.find({ userId: req.userId });
+        const logs = await LogEntry.find({ userId: req.user._id });
 
         const totalMinutes = logs.reduce((acc, log) => acc + log.durationMinutes, 0);
         const avgSession = logs.length > 0 ? Math.round(totalMinutes / logs.length) : 0;
@@ -34,12 +33,11 @@ const getAnalyticsSummary = async (req, res) => {
     }
 };
 
-// @desc    Get chart data
-// @route   GET /api/analytics/charts
-// @access  Private
+//Get chart data
+//GET /api/analytics/charts
 const getAnalyticsCharts = async (req, res) => {
     try {
-        const logs = await LogEntry.find({ userId: req.userId }).sort({ createdAt: 1 });
+        const logs = await LogEntry.find({ userId: req.user._id }).sort({ createdAt: 1 });
 
         // 1. Activity Breakdown
         const activityMap = {};
